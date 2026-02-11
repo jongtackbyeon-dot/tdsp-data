@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TDSP — Test Data Standardization Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08090c;--card:#0f1117;--elevated:#161820;--input:#111318;
+  --border:#1c1f2a;--border2:#2a2e3a;
+  --t1:#e8ecf4;--t2:#8a92a6;--t3:#505668;
+  --accent:#e8590c;--accent2:#ff6b1a;
+  --pass:#22c55e;--pass-bg:#0a1f14;--pass-b:#14532d;
+  --fail:#ef4444;--fail-bg:#1f0a0a;--fail-b:#7f1d1d;
+  --cond:#eab308;--cond-bg:#1f1a0a;--cond-b:#713f12;
+  --blue:#3b82f6;--purple:#a855f7;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'DM Sans','Noto Sans KR',sans-serif;
+  --kr:'Noto Sans KR','DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--kr);background:var(--bg);color:var(--t1);line-height:1.5;min-height:100vh;-webkit-font-smoothing:antialiased}
+input,select,textarea,button{font-family:inherit}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Header */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(8,9,12,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:9px}
+.logo svg{color:var(--accent)}
+.logo b{font-family:var(--sans);font-size:16px;color:var(--accent);letter-spacing:-.03em}
+.logo span{color:var(--t3);font-size:12px}
+.nav{display:flex;align-items:center;gap:3px}
+.nbtn{display:flex;align-items:center;gap:5px;padding:6px 13px;background:0;border:1px solid transparent;border-radius:6px;color:var(--t3);font-size:12.5px;font-weight:500;cursor:pointer;transition:.15s}
+.nbtn:hover{color:var(--t2);background:var(--elevated)}
+.nbtn.on{color:var(--t1);background:var(--elevated);border-color:var(--border)}
+.nbtn svg{width:15px;height:15px}
+.ubtn{display:flex;align-items:center;gap:5px;padding:7px 15px;background:linear-gradient(135deg,var(--accent),#c2410c);border:0;border-radius:7px;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer;margin-left:8px;box-shadow:0 2px 10px #e8590c33;transition:.15s}
+.ubtn:hover{transform:translateY(-1px);box-shadow:0 4px 16px #e8590c44}
+.ubtn svg{width:15px;height:15px}
+
+/* Main */
+.main{max-width:1260px;margin:0 auto;padding:24px}
+
+/* Banner */
+.banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:7px;font-size:12.5px;margin-bottom:18px;animation:fadeUp .3s ease}
+.banner.ok{background:var(--pass-bg);border:1px solid var(--pass-b);color:var(--pass)}
+.banner.err{background:var(--fail-bg);border:1px solid var(--fail-b);color:var(--fail)}
+.banner.info{background:#0a1530;border:1px solid #1e3a5f;color:var(--blue)}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+.st{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:16px 18px;animation:fadeUp .4s ease both}
+.st:nth-child(2){animation-delay:.05s}.st:nth-child(3){animation-delay:.1s}.st:nth-child(4){animation-delay:.15s}.st:nth-child(5){animation-delay:.2s}
+.st-l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:4px;font-weight:500}
+.st-v{font-family:var(--sans);font-size:28px;font-weight:700;letter-spacing:-.04em}
+
+/* Toolbar */
+.toolbar{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center}
+.dlbtn{display:flex;align-items:center;gap:5px;padding:7px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:6px;color:var(--t2);font-size:12px;font-weight:500;cursor:pointer;transition:.15s}
+.dlbtn:hover{border-color:var(--accent);color:var(--accent)}
+.dlbtn svg{width:13px;height:13px}
+
+/* Search */
+.sbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.swrap{display:flex;align-items:center;gap:8px;background:var(--input);border:1px solid var(--border);border-radius:7px;padding:0 12px;flex:1 1 260px;transition:.2s}
+.swrap:focus-within{border-color:var(--accent)}
+.swrap svg{color:var(--t3);width:15px;height:15px;flex-shrink:0}
+.sinput{background:0;border:0;outline:0;color:var(--t1);padding:10px 0;font-size:12.5px;width:100%}
+.sinput::placeholder{color:var(--t3)}
+.fsel{background:var(--input);border:1px solid var(--border);border-radius:7px;color:var(--t2);padding:10px 12px;font-size:12.5px;cursor:pointer;outline:0}
+.vtog{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.vtog button{padding:8px 10px;background:var(--input);border:0;color:var(--t3);cursor:pointer;display:flex;transition:.15s}
+.vtog button.on{background:var(--elevated);color:var(--t1)}
+.vtog button svg{width:15px;height:15px}
+.rcnt{color:var(--t3);font-size:11.5px;margin-bottom:12px}
+
+/* Badges */
+.bdg{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:5px;font-size:11px;font-weight:600;letter-spacing:.02em}
+.bdg svg{width:11px;height:11px}
+.bdg-p{background:var(--pass-bg);color:var(--pass);border:1px solid var(--pass-b)}
+.bdg-f{background:var(--fail-bg);color:var(--fail);border:1px solid var(--fail-b)}
+.bdg-c{background:var(--cond-bg);color:var(--cond);border:1px solid var(--cond-b)}
+.fmt{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:500}
+.fmt-ppt{background:#1a1230;color:#c084fc;border:1px solid #581c87}
+.fmt-xls{background:#0a1f14;color:#4ade80;border:1px solid #14532d}
+.fmt-doc{background:#0a1530;color:#60a5fa;border:1px solid #1e3a5f}
+
+/* Card Grid */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:11px}
+.tcard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:.2s;animation:fadeUp .35s ease both}
+.tcard:nth-child(2){animation-delay:.04s}.tcard:nth-child(3){animation-delay:.08s}.tcard:nth-child(4){animation-delay:.12s}
+.tcard:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 6px 20px #0006}
+.ch{display:flex;justify-content:space-between;align-items:start;margin-bottom:8px}
+.ct{font-size:13.5px;font-weight:600;font-family:var(--mono);margin-bottom:1px}
+.cs{font-size:11.5px;color:var(--t3)}
+.cm{display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;font-size:11.5px;color:var(--t3)}
+.cm .sep{color:var(--border)}
+.mrow{display:flex;justify-content:space-between;padding:2px 0;font-size:11.5px;color:var(--t3)}
+.mval{font-family:var(--mono);font-size:11px}
+.tags{display:flex;gap:4px;flex-wrap:wrap}
+.tag{padding:2px 8px;border-radius:9px;font-size:10px;font-weight:500;background:var(--bg);color:var(--t3);border:1px solid var(--border)}
+
+/* Table */
+.twrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow-x:auto;animation:fadeUp .35s ease}
+.dtbl{width:100%;border-collapse:collapse}
+.dtbl th{padding:11px 14px;text-align:left;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:500;border-bottom:1px solid var(--border);white-space:nowrap}
+.dtbl td{padding:12px 14px;font-size:12.5px;border-bottom:1px solid #12141c;white-space:nowrap}
+.dtbl tbody tr{cursor:pointer;transition:.1s}
+.dtbl tbody tr:hover{background:var(--elevated)}
+
+/* Detail */
+.dbk{display:inline-flex;align-items:center;gap:5px;background:0;border:0;color:var(--accent);font-size:12.5px;cursor:pointer;padding:0;margin-bottom:18px;font-weight:500}
+.dbk:hover{color:var(--accent2)}
+.dh{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.dh h2{font-family:var(--mono);font-size:20px;font-weight:700}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dsec{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px}
+.dsec.full{grid-column:1/-1}
+.stit{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);font-weight:600;margin-bottom:12px}
+.irow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #12141c;font-size:12.5px}
+.irow:last-child{border-bottom:0}
+.ilbl{color:var(--t3)}.ival{color:var(--t1)}.ival.m{font-family:var(--mono);font-size:12px}
+.mtbl{width:100%;border-collapse:collapse}
+.mtbl th{padding:7px 10px;text-align:left;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:500;border-bottom:1px solid var(--border)}
+.mtbl td{padding:9px 10px;font-size:12.5px;border-bottom:1px solid #12141c}
+.flink{display:flex;align-items:center;gap:7px;padding:7px 0;color:var(--blue);font-size:12.5px;cursor:pointer;border-bottom:1px solid #12141c}
+.flink:last-child{border-bottom:0}
+.ntxt{color:var(--t2);font-size:13px;line-height:1.7}
+
+/* Modal */
+.moverlay{position:fixed;inset:0;background:#000b;backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:1000;animation:fadeIn .2s}
+.moverlay.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;width:92%;max-width:720px;max-height:88vh;overflow:auto;box-shadow:0 20px 50px #0008}
+.mhdr{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.mhdr h3{font-family:var(--sans);font-size:15px;font-weight:600}
+.mcls{background:0;border:0;color:var(--t3);font-size:17px;cursor:pointer;padding:4px}
+.mbody{padding:22px}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:12px;color:var(--t2);margin-bottom:4px;font-weight:500}
+.fi{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--t1);padding:9px 12px;font-size:12.5px;outline:0;transition:.2s}
+.fi:focus{border-color:var(--accent)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fta{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--t1);padding:9px 12px;font-size:12px;outline:0;min-height:70px;resize:vertical;font-family:var(--mono)}
+.fsub{width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),#c2410c);border:0;border-radius:7px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;margin-top:6px;transition:.15s}
+.fsub:hover{transform:translateY(-1px)}
+.fsub:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* Config */
+.csec{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;animation:fadeUp .4s ease}
+.clbl{display:block;font-size:12.5px;color:var(--t2);margin-bottom:5px;font-weight:500}
+.cinp{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--t1);padding:9px 12px;font-size:12.5px;outline:0;margin-bottom:12px;font-family:var(--mono);transition:.2s}
+.cinp:focus{border-color:var(--accent)}
+.chint{font-size:11px;color:var(--t3);margin-top:-6px;margin-bottom:12px;line-height:1.5}
+.cbtn{padding:10px 22px;background:linear-gradient(135deg,var(--accent),#c2410c);border:0;border-radius:7px;color:#fff;font-size:13px;font-weight:600;cursor:pointer}
+
+/* Schema */
+.sctbl{width:100%;border-collapse:collapse}
+.sctbl th{padding:9px 12px;text-align:left;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:500;border-bottom:1px solid var(--border)}
+.sctbl td{padding:10px 12px;font-size:12.5px;border-bottom:1px solid #12141c}
+.scf{color:var(--accent);font-family:var(--mono);font-size:12px}
+.sct{display:inline-block;padding:2px 8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;font-size:10.5px;color:var(--t2)}
+.scr{color:var(--accent);font-size:11px}
+
+/* Pipeline */
+.pflow{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;padding:16px 0}
+.pstep{background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:22px 18px;text-align:center;min-width:130px;transition:.2s}
+.pstep:hover{transform:translateY(-2px);border-color:var(--border2)}
+.pico{font-size:30px;margin-bottom:8px}
+.ptit{font-size:12.5px;font-weight:600;margin-bottom:3px}
+.pdsc{font-size:10.5px;color:var(--t3);line-height:1.4}
+.parr{color:var(--border);font-size:20px}
+
+/* Arch */
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.acard{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:18px}
+.atit{font-size:12.5px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.atit svg{width:15px;height:15px}
+.adsc{font-size:11.5px;color:var(--t3);line-height:1.6}
+.adsc code{background:var(--elevated);padding:1px 6px;border-radius:3px;font-family:var(--mono);font-size:10.5px;color:var(--accent)}
+pre.codeblock{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:14px;overflow-x:auto;font-family:var(--mono);font-size:11.5px;color:var(--t2);line-height:1.7;margin-top:14px}
+
+/* Spinner */
+.spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle}
+
+/* Responsive */
+@media(max-width:768px){
+  .stats{grid-template-columns:repeat(3,1fr)}
+  .dgrid,.agrid{grid-template-columns:1fr}
+  .cgrid{grid-template-columns:1fr}
+  .hdr{padding:0 12px}.main{padding:14px}
+  .logo span{display:none}
+  .pflow{flex-direction:column}.parr{transform:rotate(90deg)}
+  .frow{grid-template-columns:1fr}
+}
+/* AI Upload */
+.upload-tabs{display:flex;gap:0;margin-bottom:18px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.utab{flex:1;padding:10px;background:var(--bg);border:0;color:var(--t3);font-size:12.5px;font-weight:500;cursor:pointer;transition:.15s;text-align:center}
+.utab:not(:last-child){border-right:1px solid var(--border)}
+.utab.on{background:var(--elevated);color:var(--t1)}
+.utab:hover:not(.on){color:var(--t2)}
+.dropzone{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;transition:.25s;position:relative}
+.dropzone:hover,.dropzone.drag{border-color:var(--accent);background:rgba(232,89,12,.04)}
+.dropzone.drag{transform:scale(1.01)}
+.dz-icon{font-size:36px;margin-bottom:10px}
+.dz-main{color:var(--t2);font-size:13px;margin-bottom:4px}
+.dz-sub{color:var(--t3);font-size:11px}
+.dz-file{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-top:14px;text-align:left}
+.dz-fname{font-family:var(--mono);font-size:12px;color:var(--t1);flex:1}
+.dz-fsize{font-size:11px;color:var(--t3)}
+.dz-remove{background:0;border:0;color:var(--t3);cursor:pointer;font-size:14px;padding:2px}
+.dz-remove:hover{color:var(--fail)}
+.ai-progress{margin-top:16px;padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:8px}
+.ai-step{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;color:var(--t3)}
+.ai-step.active{color:var(--accent)}
+.ai-step.done{color:var(--pass)}
+.ai-step .check{width:16px;text-align:center}
+.ai-preview{margin-top:16px}
+.ai-preview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ai-preview-header span{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;font-weight:500}
+.ai-json{width:100%;min-height:220px;max-height:380px;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--t1);padding:12px;font-family:var(--mono);font-size:11px;line-height:1.6;outline:0;resize:vertical}
+.ai-json:focus{border-color:var(--accent)}
+.ai-actions{display:flex;gap:8px;margin-top:12px}
+.ai-actions button{flex:1}
+.abtn-primary{padding:11px;background:linear-gradient(135deg,var(--accent),#c2410c);border:0;border-radius:7px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
+.abtn-primary:hover{transform:translateY(-1px)}
+.abtn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.abtn-secondary{padding:11px;background:var(--elevated);border:1px solid var(--border);border-radius:7px;color:var(--t2);font-size:13px;font-weight:500;cursor:pointer;transition:.15s}
+.abtn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.ai-error{margin-top:12px;padding:10px 14px;background:var(--fail-bg);border:1px solid var(--fail-b);border-radius:7px;color:var(--fail);font-size:12px}
+.multi-entries{margin-top:12px}
+.entry-tab{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--t3);font-size:11px;cursor:pointer;margin-right:4px;margin-bottom:4px;transition:.15s}
+.entry-tab.on{background:var(--elevated);color:var(--t1);border-color:var(--accent)}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="data/schema.js"></script>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+    <b>TDSP</b>
+    <span>Test Data Standardization Platform</span>
+  </div>
+  <div class="nav" id="navBar"></div>
+</header>
+
+<main class="main">
+  <div id="banner" style="display:none"></div>
+  <div id="content"></div>
+</main>
+
+<div class="moverlay" id="uploadModal">
+  <div class="modal">
+    <div class="mhdr"><h3 id="modalTitle">테스트 데이터 등록</h3><button class="mcls" onclick="closeModal()">✕</button></div>
+    <div class="mbody" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ══════════ STATE ══════════
+let DATA=[], FILTERED=[], VIEW='dashboard', VMODE='grid';
+let CFG={owner:'',repo:'',branch:'main',path:'data/tests.json',token:'',claude_key:''};
+try{Object.assign(CFG,JSON.parse(localStorage.getItem('tdsp_cfg')||'{}'))}catch(e){}
+
+// ══════════ SAMPLE DATA ══════════
+const SAMPLE=[
+  {test_id:"QB-FAN-2025-001",project_name:"QB Project",test_category:"Thermocycling Module",test_type:"Comparative",test_date:"2025-04-11",result_summary:"Conditional",engineer_name:"Jongtack Byeon",report_type:"Detailed Report",project_phase:"Alpha",dut_info:{module:"Thermocycling Module",heatsink_design:"Original (Alpha)",fan_model:"614 J/2HHPR-010 (Original)"},test_conditions:{unit_level:"Module & System",software:"BlinkX 2.0 Control / Toolbox",protocol:"PCR w/o images & Temporary-made",pcr_cycles:40},measurements:[{item:"Noise Level (System)",value:"70-75",unit:"dB",condition:"Toolbox, PCR w/o images",verdict:"Fail"},{item:"Noise Level (Module, Original)",value:"20-30",unit:"PWM",condition:"BlinkX, Temporary",verdict:"Pass"},{item:"Operation Time Diff (Orion)",value:"+20-30",unit:"sec",condition:"Module level",verdict:"Pass"}],original_files:["20250411_1st_QB_Fan_Noise_Evaluation.pptx"],source_format:"PPT",tags:["fan-noise","Orion","Sanyo","original","system-vs-module"],notes:"Fan replacement shows clear cooling difference. Orion/Sanyo produce softer airflow sound. No significant impact on PCR performance.",schema_version:"1.0",custom_fields:{evaluation_purpose:"Study and evaluate cooling fan operational noise and verify effectiveness of alternative fans",evaluation_priority:"Noise → Operation time → Heatsink temperature",pcr_protocol:{targets:[{temp:95,hold_sec:2},{temp:60,hold_sec:5}],cycles:40,pre_heating:true},comparison_targets:[{name:"Original fan (614 J/2HHPR-010)",results:{noise:"lowest peak",behavior:"settles to PWM 20-30"}},{name:"Alternative#1 Orion",results:{noise:"softer airflow",behavior:"rapid cooling, fan stops cyclically"}},{name:"Alternative#2 Sanyo",results:{noise:"softer airflow",behavior:"similar to Orion, faster cycle"}}],key_findings:["Module vs System level shows different fan behavior","Software difference (BlinkX vs Toolbox) affects fan activation timing","Temperature saturation unstable with Toolbox"]}},
+  {test_id:"QB-MHS-2025-002",project_name:"QB Project",test_category:"Thermocycling Module",test_type:"Comparative",test_date:"2025-05-30",result_summary:"Conditional",engineer_name:"Jongtack Byeon",report_type:"Detailed Report",project_phase:"Alpha",dut_info:{module:"Thermocycling Module",heatsink_designs:["Original","Original (by MHS)","MHS","MHS Extended"]},test_conditions:{unit_level:"Module",software:"BlinkX 2.0 Control",protocol:"PCR w/o images",pcr_cycles:40,pwm_control:"Feedback (automatic)"},measurements:[{item:"Operating Time (Original)",value:"27:22-27:30",unit:"mm:ss",condition:"Feedback control",verdict:"Pass"},{item:"Operating Time (MHS Extended)",value:"21:38-21:48",unit:"mm:ss",condition:"Feedback control",verdict:"Pass"},{item:"Noise (Original)",value:"64.28-66.81",unit:"dB",condition:"avg 21-40 cycles",verdict:"Conditional"},{item:"Noise (MHS)",value:"69.80-70.13",unit:"dB",condition:"avg 21-40 cycles",verdict:"Fail"},{item:"HS Temp (MHS Extended)",value:"41.13-41.47",unit:"degC",condition:"avg 21-40 cycles",verdict:"Pass"}],original_files:["20250530_MHS_Design_Evaluation.pptx"],source_format:"PPT",tags:["MHS","heatsink-design","heat-capacity","ramping-rate","PWM","airflow"],notes:"MHS design faster operating time despite higher HS temp. Interpreted as lower heat capacity effect enabling faster transient heat transfer.",schema_version:"1.0",custom_fields:{evaluation_purpose:"Evaluate MHS heatsink design and identify correlation between design elements",comparison_targets:[{name:"Original",category:"Standard heatsink",results:{op_time:"0:27:22-0:27:30",hs_temp_degC:"45.95-46.64",noise_dB:"64.28-66.81",pwm_pct:"59.22-64.02"}},{name:"MHS",category:"Sheet metal heatsink",results:{op_time:"0:22:34-0:22:52",hs_temp_degC:"48.80-49.92",noise_dB:"69.80-70.13",pwm_pct:"74.53-77.63"}},{name:"MHS Extended",category:"Extended sheet metal",results:{op_time:"0:21:38-0:21:48",hs_temp_degC:"41.13-41.47",noise_dB:"67.89-68.55",pwm_pct:"80.27-85.17"}}],design_factors:{mhs_heat_capacity:"lower than Original",material:"sheet metal form, Al 2000+6000 series"},key_findings:["Lower heat capacity enables faster ramping despite higher HS temp","PWM algorithm: initial ramp-up determines overall PWM behavior","MHS Extended most effective for noise reduction"]}},
+  {test_id:"QB-TCM-2026-003",project_name:"QB Project",test_category:"Thermocycling Module",test_type:"Comparative",test_date:"2026-02-10",result_summary:"Conditional",engineer_name:"Jongtack Byeon",report_type:"Monthly Report",project_phase:"Beta1",dut_info:{module:"Thermocycling Module",heatsink_design:"Fin Type",fan_candidates:["614 J/2HHPR-010","THB1224B-PM00","OD1238-24HHBVXE","DC1203824W2B-BT0"]},test_conditions:{unit_level:"Module",software:"BlinkX 2.0 Control",protocol:"PCR 95↔60°C",pcr_cycles:40,pwm_levels:["PWM30","PWM40","PWM50"],evaluation_method:"CFD Simulation + Actual Test"},measurements:[{item:"Noise (Fan1 Original)",value:54.08,unit:"dB",condition:"Actual avg",verdict:"Conditional"},{item:"Noise (Fan3 OD1238)",value:52.61,unit:"dB",condition:"Actual avg",verdict:"Pass"},{item:"HS Temp (Fan2 THB1224B)",value:42.25,unit:"degC",condition:"Actual avg",verdict:"Pass"},{item:"OP Time (Fan4 DC1203824)",value:"0:23:00",unit:"hh:mm:ss",condition:"Actual avg",verdict:"Pass"}],original_files:["20260210_PBK_R_D_Monthly_Report_Test_Activities.pptx"],source_format:"PPT",tags:["fan-selection","CFD","simulation","fin-type","noise","static-pressure"],notes:"Fan 1 (Original) best balanced. Fan 3 lowest noise but backflow risk. Flow Simulation model NOT suitable for fan factor prediction in actual conditions.",schema_version:"1.0",custom_fields:{evaluation_purpose:"Select optimal cooling fan for Fin-Type heatsink via CFD screening + actual test",evaluation_priority:"Noise → Operation time → Heatsink temperature",comparison_targets:[{name:"Fan 1 - 614 J/2HHPR-010 (Original)",category:"60mm",results:{sim_hs_temp:48.96,actual_noise_dB:54.08,actual_hs_temp:54.17,actual_op_time:"0:24:11"},label:"Best balanced"},{name:"Fan 2 - THB1224B-PM00",category:"120mm",results:{sim_hs_temp:45.04,actual_noise_dB:64.37,actual_hs_temp:42.25,actual_op_time:"0:23:22"},label:"Best cooling"},{name:"Fan 3 - OD1238-24HHBVXE",category:"120mm",results:{sim_hs_temp:44.58,actual_noise_dB:52.61,actual_hs_temp:53.80,actual_op_time:"0:23:07"},label:"Best low noise"},{name:"Fan 4 - DC1203824W2B-BT0",category:"120mm",results:{sim_hs_temp:52.15,actual_noise_dB:58.86,actual_hs_temp:51.73,actual_op_time:"0:23:00"},label:"Best fastest"}],simulation_results:{method:"Steady-State CFD",peltier_load_W:200,fan_count:9},statistical_analysis:[{factor:"Static Pressure",context:"Simulation",r:-0.748,R2:0.560,p_value:0.00001},{factor:"Static Pressure × Airflow",context:"Simulation",r:-0.883,R2:0.779,p_value:0.00000},{factor:"Static Pressure × Airflow",context:"Actual Test",r:-0.171,R2:0.029,p_value:0.596}],best_candidate:"Fan 1 (614 J/2HHPR-010) — best balanced",key_findings:["Flow Simulation model NOT suitable for actual fan factor prediction","Min Static Pressure ~2.1 inH2O needed to avoid backflow","Spec sheet fan parameters do not represent low PWM performance"]}}
+];
+
+// ══════════ UTILS ══════════
+const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const badge=r=>{const c=r==='Pass'?'p':r==='Fail'?'f':'c';const ic=r==='Pass'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':r==='Fail'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';return `<span class="bdg bdg-${c}">${ic} ${r}</span>`};
+const fmtB=f=>{const c=f==='PPT'?'ppt':f==='Excel'?'xls':'doc';return `<span class="fmt fmt-${c}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>${f}</span>`};
+const vclr=v=>v==='Pass'?'var(--pass)':v==='Fail'?'var(--fail)':'var(--cond)';
+
+function showBanner(type,msg){const b=document.getElementById('banner');b.className='banner '+(type==='ok'?'ok':type==='err'?'err':'info');b.innerHTML=msg;b.style.display='flex';setTimeout(()=>b.style.display='none',6000)}
+function closeModal(){document.getElementById('uploadModal').classList.remove('show')}
+function openModal(){document.getElementById('uploadModal').classList.add('show')}
+
+// ══════════ GITHUB API ══════════
+async function loadGitHub(){
+  if(!CFG.owner||!CFG.repo){showBanner('info','GitHub 미설정. 샘플 데이터를 표시합니다. [설정]에서 연결하세요.');DATA=[...SAMPLE];render();return}
+  showBanner('info','<span class="spin"></span> GitHub에서 불러오는 중...');
+  try{
+    const h={'Accept':'application/vnd.github.v3+json'};if(CFG.token)h['Authorization']='token '+CFG.token;
+    const r=await fetch(`https://api.github.com/repos/${CFG.owner}/${CFG.repo}/contents/${CFG.path}?ref=${CFG.branch}&t=${Date.now()}`,{headers:h});
+    if(!r.ok){if(r.status===404){showBanner('info','데이터 파일이 없습니다. 첫 데이터를 업로드하세요!');DATA=[]}else throw new Error(r.status)}
+    else{const f=await r.json();DATA=JSON.parse(decodeURIComponent(escape(atob(f.content.replace(/\n/g,'')))));showBanner('ok',`✓ ${DATA.length}건 로드 완료`)}
+  }catch(e){showBanner('err','GitHub 연동 실패: '+e.message+'. 샘플 데이터 사용.');DATA=[...SAMPLE]}
+  render();
+}
+
+async function saveGitHub(entry){
+  if(!CFG.owner||!CFG.repo||!CFG.token){DATA.push(entry);render();showBanner('ok','✓ 로컬 저장 완료. GitHub 연동은 [설정]에서 토큰 입력 필요.');return true}
+  try{
+    const h={'Accept':'application/vnd.github.v3+json','Authorization':'token '+CFG.token,'Content-Type':'application/json'};
+    let sha=null;
+    try{const g=await fetch(`https://api.github.com/repos/${CFG.owner}/${CFG.repo}/contents/${CFG.path}?ref=${CFG.branch}`,{headers:h});if(g.ok){const x=await g.json();sha=x.sha;DATA=JSON.parse(decodeURIComponent(escape(atob(x.content.replace(/\n/g,'')))))}}catch(e){}
+    DATA.push(entry);
+    const body={message:`[TDSP] Add: ${entry.test_id}`,content:btoa(unescape(encodeURIComponent(JSON.stringify(DATA,null,2)))),branch:CFG.branch};
+    if(sha)body.sha=sha;
+    const p=await fetch(`https://api.github.com/repos/${CFG.owner}/${CFG.repo}/contents/${CFG.path}`,{method:'PUT',headers:h,body:JSON.stringify(body)});
+    if(!p.ok)throw new Error(p.status);
+    render();showBanner('ok',`✓ GitHub 커밋 완료: ${entry.test_id}`);return true;
+  }catch(e){showBanner('err','GitHub 저장 실패: '+e.message);DATA.push(entry);render();return false}
+}
+
+// ══════════ DOWNLOADS ══════════
+function dlJSON(){
+  const d=FILTERED.length?FILTERED:DATA;
+  const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tdsp_data.json';a.click();
+}
+function dlCSV(){
+  const d=FILTERED.length?FILTERED:DATA;if(!d.length)return;
+  const cols=['test_id','project_name','test_type','test_date','result_summary','engineer_name','source_format','notes','tags'];
+  let csv=cols.join(',')+'\n';
+  d.forEach(r=>{csv+=cols.map(c=>{let v=r[c];if(Array.isArray(v))v=v.join('; ');return `"${String(v||'').replace(/"/g,'""')}"`}).join(',')+'\n'});
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tdsp_data.csv';a.click();
+}
+function dlSingle(id){
+  const item=DATA.find(d=>d.test_id===id);if(!item)return;
+  const blob=new Blob([JSON.stringify(item,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=id+'.json';a.click();
+}
+
+// ══════════ FILTER ══════════
+function filter(){
+  const q=(document.getElementById('si')?.value||'').toLowerCase();
+  const ft=document.getElementById('ft')?.value||'All';
+  const fr=document.getElementById('fr')?.value||'All';
+  FILTERED=DATA.filter(d=>{
+    const mq=!q||d.project_name.toLowerCase().includes(q)||d.test_id.toLowerCase().includes(q)||(d.tags||[]).some(t=>t.toLowerCase().includes(q))||d.engineer_name.includes(q)||(d.notes||'').toLowerCase().includes(q)||(d.test_category||'').toLowerCase().includes(q)||(d.report_type||'').toLowerCase().includes(q);
+    const mt=ft==='All'||d.test_type===ft;
+    const mr=fr==='All'||d.result_summary===fr;
+    return mq&&mt&&mr;
+  });
+  renderData();
+}
+
+// ══════════ RENDER NAV ══════════
+function renderNav(){
+  const tabs=[
+    {k:'dashboard',l:'대시보드',i:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'},
+    {k:'schema',l:'스키마',i:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="5" rx="1"/><rect x="2" y="10" width="20" height="5" rx="1"/><rect x="2" y="17" width="20" height="5" rx="1"/></svg>'},
+    {k:'arch',l:'아키텍처',i:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="3"/><circle cx="19" cy="12" r="3"/><line x1="8" y1="12" x2="16" y2="12"/></svg>'},
+    {k:'config',l:'설정',i:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9"/></svg>'}
+  ];
+  document.getElementById('navBar').innerHTML=tabs.map(t=>`<button class="nbtn ${VIEW===t.k?'on':''}" onclick="switchView('${t.k}')">${t.i} ${t.l}</button>`).join('')+
+  `<button class="ubtn" onclick="openUpload()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> 업로드</button>`;
+}
+
+function switchView(v){VIEW=v;renderNav();render()}
+
+// ══════════ RENDER MAIN ══════════
+function render(){
+  FILTERED=[...DATA];
+  const C=document.getElementById('content');
+  if(VIEW==='dashboard')renderDashboard(C);
+  else if(VIEW==='schema')renderSchema(C);
+  else if(VIEW==='arch')renderArch(C);
+  else if(VIEW==='config')renderConfig(C);
+  else if(VIEW==='detail')renderDetail(C);
+}
+
+function renderDashboard(C){
+  const tot=DATA.length,pas=DATA.filter(d=>d.result_summary==='Pass').length,fai=DATA.filter(d=>d.result_summary==='Fail').length,con=DATA.filter(d=>d.result_summary==='Conditional').length,prj=[...new Set(DATA.map(d=>d.project_name))].length;
+  C.innerHTML=`
+    <div class="stats">
+      <div class="st"><div class="st-l">전체 테스트</div><div class="st-v" style="color:var(--t2)">${tot}</div></div>
+      <div class="st"><div class="st-l">Pass</div><div class="st-v" style="color:var(--pass)">${pas}</div></div>
+      <div class="st"><div class="st-l">Fail</div><div class="st-v" style="color:var(--fail)">${fai}</div></div>
+      <div class="st"><div class="st-l">Conditional</div><div class="st-v" style="color:var(--cond)">${con}</div></div>
+      <div class="st"><div class="st-l">프로젝트</div><div class="st-v" style="color:var(--blue)">${prj}</div></div>
+    </div>
+    <div class="toolbar">
+      <button class="dlbtn" onclick="dlJSON()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>JSON 다운로드</button>
+      <button class="dlbtn" onclick="dlCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>CSV 다운로드</button>
+      <button class="dlbtn" onclick="loadGitHub()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 12 7.5v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5"/></svg>GitHub 새로고침</button>
+    </div>
+    <div class="sbar">
+      <div class="swrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input class="sinput" id="si" placeholder="테스트 ID, 프로젝트명, 태그, 엔지니어 검색..." oninput="filter()"></div>
+      <select class="fsel" id="ft" onchange="filter()"><option value="All">전체 유형</option>${buildFilterOptions('test_type')}</select>
+      <select class="fsel" id="fr" onchange="filter()"><option value="All">전체 결과</option>${buildFilterOptions('result_summary')}</select>
+      <div class="vtog"><button class="${VMODE==='grid'?'on':''}" onclick="VMODE='grid';filter()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button><button class="${VMODE==='list'?'on':''}" onclick="VMODE='list';filter()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg></button></div>
+    </div>
+    <div class="rcnt" id="rcnt">${FILTERED.length}건</div>
+    <div id="dc"></div>`;
+  renderData();
+}
+
+function renderData(){
+  const dc=document.getElementById('dc');const rc=document.getElementById('rcnt');
+  if(rc)rc.textContent=FILTERED.length+'건의 테스트 데이터';
+  if(!dc)return;
+  if(!FILTERED.length){dc.innerHTML='<div style="text-align:center;padding:50px;color:var(--t3)">데이터 없음</div>';return}
+  if(VMODE==='grid'){
+    dc.innerHTML=`<div class="cgrid">${FILTERED.map(d=>`
+      <div class="tcard" onclick="showDetail('${d.test_id}')">
+        <div class="ch"><div><div class="ct">${esc(d.test_id)}</div><div class="cs">${esc(d.project_name)}${d.test_category?' — '+esc(d.test_category):''}</div></div>${badge(d.result_summary)}</div>
+        <div class="cm">${fmtB(d.source_format||'Word')}<span>${d.test_type}</span><span class="sep">·</span><span>${d.test_date}</span><span class="sep">·</span><span>${d.engineer_name}</span>${d.report_type?'<span class="sep">·</span><span style="color:var(--purple)">'+d.report_type+'</span>':''}</div>
+        ${(d.measurements||[]).slice(0,2).map(m=>`<div class="mrow"><span>${m.item}</span><span class="mval" style="color:${vclr(m.verdict)}">${m.value} ${m.unit}</span></div>`).join('')}
+        ${(d.measurements||[]).length>2?`<div style="font-size:10px;color:var(--t3);margin-top:2px">+${d.measurements.length-2} more</div>`:''}
+        <div class="tags" style="margin-top:8px">${(d.tags||[]).slice(0,4).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      </div>`).join('')}</div>`;
+  }else{
+    dc.innerHTML=`<div class="twrap"><table class="dtbl"><thead><tr><th>테스트 ID</th><th>프로젝트</th><th>유형</th><th>날짜</th><th>결과</th><th>원본</th><th>엔지니어</th></tr></thead><tbody>${FILTERED.map(d=>`
+      <tr onclick="showDetail('${d.test_id}')">
+        <td style="font-family:var(--mono);font-size:12px;color:var(--t1)">${d.test_id}</td>
+        <td style="color:var(--t3)">${d.project_name}</td>
+        <td style="color:var(--t3)">${d.test_type}</td>
+        <td style="color:var(--t3)">${d.test_date}</td>
+        <td>${badge(d.result_summary)}</td>
+        <td>${fmtB(d.source_format||'Word')}</td>
+        <td style="color:var(--t3)">${d.engineer_name}</td>
+      </tr>`).join('')}</tbody></table></div>`;
+  }
+}
+
+// ══════════ DETAIL ══════════
+let DETAIL_ID='';
+function showDetail(id){DETAIL_ID=id;VIEW='detail';renderNav();render()}
+function backToList(){VIEW='dashboard';renderNav();render()}
+
+function renderDetail(C){
+  const d=DATA.find(x=>x.test_id===DETAIL_ID);if(!d){backToList();return}
+  C.innerHTML=`<div style="animation:fadeUp .3s ease">
+    <button class="dbk" onclick="backToList()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>목록으로</button>
+    <div class="dh"><h2>${esc(d.test_id)}</h2>${badge(d.result_summary)} ${fmtB(d.source_format||'Word')}
+      <button class="dlbtn" onclick="dlSingle('${d.test_id}')" style="margin-left:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>다운로드</button>
+    </div>
+    <div class="dgrid">
+      <div class="dsec"><div class="stit" style="color:var(--blue)">Layer 1 — 기본 정보</div>${[['프로젝트',d.project_name],['카테고리',d.test_category||'-'],['테스트 유형',d.test_type],['테스트 날짜',d.test_date],['담당 엔지니어',d.engineer_name],['리포트 유형',d.report_type||'-'],['프로젝트 단계',d.project_phase||'-']].map(([l,v])=>`<div class="irow"><span class="ilbl">${l}</span><span class="ival">${esc(v||'')}</span></div>`).join('')}</div>
+      <div class="dsec"><div class="stit" style="color:var(--purple)">Layer 2 — DUT 정보</div>${d.dut_info?Object.entries(d.dut_info).map(([k,v])=>`<div class="irow"><span class="ilbl">${k}</span><span class="ival m">${esc(typeof v==='object'?JSON.stringify(v):String(v))}</span></div>`).join(''):'<span class="ilbl">없음</span>'}</div>
+      <div class="dsec"><div class="stit" style="color:var(--purple)">Layer 2 — 테스트 조건</div>${d.test_conditions?Object.entries(d.test_conditions).map(([k,v])=>`<div class="irow"><span class="ilbl">${k}</span><span class="ival">${esc(typeof v==='object'?JSON.stringify(v):String(v))}</span></div>`).join(''):'<span class="ilbl">없음</span>'}</div>
+      <div class="dsec"><div class="stit">원본 파일</div>${(d.original_files||[]).map(f=>`<div class="flink"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>${esc(f)}</div>`).join('')}</div>
+      ${(d.measurements||[]).length?`<div class="dsec full"><div class="stit" style="color:var(--purple)">Layer 2 — 측정 결과</div><table class="mtbl"><thead><tr><th>항목</th><th>측정값</th><th>단위</th><th>조건</th><th>판정</th></tr></thead><tbody>${d.measurements.map(m=>`<tr><td style="color:var(--t1)">${m.item||''}</td><td style="font-family:var(--mono);font-size:12px;color:var(--t1)">${m.value!=null?m.value:''}</td><td style="color:var(--t3)">${m.unit||''}</td><td style="color:var(--t2);font-size:11px">${m.condition||m.spec||''}</td><td>${m.verdict?badge(m.verdict):''}</td></tr>`).join('')}</tbody></table></div>`:''}
+      ${renderCustomFieldsDetail(d)}
+      <div class="dsec"><div class="stit">태그      </div>`:''}
+      <div class="dsec"><div class="stit">태그</div><div class="tags">${(d.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div></div>
+      <div class="dsec"><div class="stit">비고</div><div class="ntxt">${esc(d.notes||'없음')}</div></div>
+    </div></div>`;
+}
+
+// ══════════ SCHEMA ══════════
+function renderSchema(C){
+  const layers=[SCHEMA.layers.common, SCHEMA.layers.flexible];
+  // Add active module as Layer 3
+  for(const [cat,mod] of Object.entries(SCHEMA.modules)){
+    if(!mod.disabled) layers.push({
+      label:`Layer 3 — ${mod.label} 전용 (custom_fields)`,
+      color:SCHEMA.layers.custom.color, bg:SCHEMA.layers.custom.bg, border:SCHEMA.layers.custom.border,
+      desc:`${cat} 테스트 전용. 다른 모듈은 다른 custom_fields 사용.`,
+      fields:mod.fields.map(f=>({key:'custom_fields.'+f.key,type:f.type,required:false,desc:f.desc}))
+    });
+  }
+  C.innerHTML=layers.map(l=>{
+    const flds=l.fields||[];
+    return `<div class="dsec full" style="animation:fadeUp .4s ease;margin-bottom:14px;background:${l.bg};border-color:${l.border}">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:4px"><div style="width:8px;height:8px;border-radius:50%;background:${l.color}"></div><h3 style="font-family:var(--sans);font-size:15px;font-weight:700;color:${l.color}">${l.label}</h3></div>
+    <div style="font-size:11px;color:var(--t3);margin-bottom:14px;margin-left:17px">${l.desc}</div>
+    <table class="sctbl"><thead><tr><th>필드명</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody>${flds.map(f=>`<tr><td class="scf" style="color:${l.color}">${f.key}</td><td><span class="sct">${f.type}</span></td><td>${f.required?'<span class="scr">●</span>':''}</td><td style="color:var(--t3)">${f.desc}</td></tr>`).join('')}</tbody></table></div>`;
+  }).join('')+
+  // Future domains preview
+  `<div class="dsec full" style="margin-top:0"><div class="stit">미래 확장 도메인 (Phase 2+)</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">${Object.values(SCHEMA.domains).map(d=>`<div style="padding:12px;background:var(--bg);border:1px solid ${d.active?'var(--pass-b)':'var(--border)'};border-radius:8px;opacity:${d.active?1:0.5}"><div style="font-size:14px;margin-bottom:4px">${d.icon} <span style="font-size:12px;font-weight:600;color:${d.active?'var(--pass)':'var(--t3)'}">${d.label}</span>${d.active?' <span style="font-size:9px;padding:1px 6px;background:var(--pass-bg);color:var(--pass);border-radius:3px">활성</span>':''}</div><div style="font-size:11px;color:var(--t3)">${d.desc}</div></div>`).join('')}</div></div>`+
+  `<div class="dsec full" style="margin-top:14px;animation:fadeUp .4s ease .1s both"><div class="stit">JSON 샘플 (3-Layer 구조)</div><pre class="codeblock">${esc(JSON.stringify(SAMPLE[2],null,2))}</pre></div>`;
+}
+
+// ══════════ ARCHITECTURE ══════════
+function renderArch(C){
+  C.innerHTML=`<div class="dsec full" style="animation:fadeUp .4s ease">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:20px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="5" cy="12" r="3"/><circle cx="19" cy="12" r="3"/><line x1="8" y1="12" x2="16" y2="12"/></svg><h3 style="font-family:var(--sans);font-size:17px;font-weight:700">데이터 파이프라인 & 아키텍처</h3></div>
+    <div class="pflow">${[
+      {i:'📁',t:'Upload',d:'PPT / Excel / Word<br>드래그 앤 드롭',c:'var(--blue)'},
+      {i:'🤖',t:'AI Parse',d:'Claude API 자동 파싱',c:'var(--accent)'},
+      {i:'🔄',t:'Standardize',d:'JSON 스키마 매핑',c:'var(--purple)'},
+      {i:'💾',t:'Store',d:'GitHub Repo',c:'var(--pass)'},
+      {i:'🌐',t:'Access',d:'GitHub Pages',c:'#06b6d4'}
+    ].map((s,i,a)=>`<div class="pstep"><div class="pico">${s.i}</div><div class="ptit" style="color:${s.c}">${s.t}</div><div class="pdsc">${s.d}</div></div>${i<a.length-1?'<div class="parr">→</div>':''}`).join('')}</div></div>
+    <div class="agrid">${[
+      {t:'Frontend — GitHub Pages',c:'var(--blue)',d:'정적 HTML을 <code>GitHub Pages</code>로 호스팅. 무료, 별도 서버 불필요.'},
+      {t:'Data — GitHub Repository',c:'var(--pass)',d:'<code>data/tests.json</code>에 저장. Git 버전 관리로 이력 추적.'},
+      {t:'Upload — AI 파싱',c:'var(--accent)',d:'PPT/Excel을 드래그앤드롭하면 <code>Claude API</code>가 자동으로 JSON 변환. 수동 입력과 JSON 붙여넣기도 지원.'},
+      {t:'Download — JSON/CSV',c:'var(--purple)',d:'필터링된 데이터를 <code>JSON</code> 또는 <code>CSV</code>로 다운로드.'}
+    ].map(a=>`<div class="acard"><div class="atit" style="color:${a.c}">${a.t}</div><div class="adsc">${a.d}</div></div>`).join('')}</div>
+    <div class="dsec full" style="margin-top:14px"><div class="stit">GitHub 저장소 구조</div><pre class="codeblock">tdsp-data/
+├── index.html          ← 이 플랫폼 (GitHub Pages)
+├── data/
+│   └── tests.json      ← 표준화된 테스트 데이터
+├── raw/                ← 원본 파일 보관 (선택)
+│   ├── Report_v1.pptx
+│   └── Data.xlsx
+└── README.md</pre></div>
+    <div class="dsec full" style="margin-top:14px"><div class="stit">배포 방법</div><div style="color:var(--t2);font-size:13px;line-height:2">
+      <b style="color:var(--t1)">1.</b> GitHub에 <code style="background:var(--bg);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:11px;color:var(--accent)">tdsp-data</code> 저장소 생성<br>
+      <b style="color:var(--t1)">2.</b> 이 HTML을 <code style="background:var(--bg);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:11px;color:var(--accent)">index.html</code>로 push<br>
+      <b style="color:var(--t1)">3.</b> Settings → Pages → Source를 <code style="background:var(--bg);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:11px;color:var(--accent)">main</code>으로 설정<br>
+      <b style="color:var(--t1)">4.</b> <code style="background:var(--bg);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:11px;color:var(--accent)">https://USERNAME.github.io/tdsp-data/</code> 접속 가능<br>
+      <b style="color:var(--t1)">5.</b> 플랫폼 [설정]에서 GitHub 정보 입력 → 데이터 연동 완료
+    </div></div>`;
+}
+
+// ══════════ CONFIG ══════════
+function renderConfig(C){
+  C.innerHTML=`<div class="csec"><div style="display:flex;align-items:center;gap:9px;margin-bottom:18px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83"/></svg><h3 style="font-family:var(--sans);font-size:17px;font-weight:700">GitHub 연동 설정</h3></div>
+    <label class="clbl">GitHub Username</label><input class="cinp" id="co" value="${esc(CFG.owner)}" placeholder="예: jongtack-byeon">
+    <label class="clbl">Repository Name</label><input class="cinp" id="cr" value="${esc(CFG.repo)}" placeholder="예: tdsp-data">
+    <label class="clbl">Branch</label><input class="cinp" id="cb" value="${esc(CFG.branch)}" placeholder="main">
+    <label class="clbl">데이터 파일 경로</label><input class="cinp" id="cp" value="${esc(CFG.path)}" placeholder="data/tests.json">
+    <div class="chint">repo 내 JSON 데이터 파일의 경로</div>
+    <label class="clbl">Personal Access Token (쓰기용, 선택)</label><input class="cinp" id="ct" type="password" value="${esc(CFG.token)}" placeholder="ghp_xxxxxxxxxxxx">
+    <div class="chint">GitHub → Settings → Developer settings → Personal access tokens → 권한: <code style="background:var(--bg);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:10px;color:var(--accent)">repo</code></div>
+    <button class="cbtn" onclick="saveCfg()">설정 저장 및 연결 테스트</button></div>
+  <div class="csec" style="margin-top:14px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:18px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M12 2a5 5 0 0 1 5 5v3H7V7a5 5 0 0 1 5-5z"/><rect x="3" y="10" width="18" height="12" rx="2"/><circle cx="12" cy="16" r="1"/></svg><h3 style="font-family:var(--sans);font-size:17px;font-weight:700">Claude AI 파싱 설정</h3></div>
+    <label class="clbl">Claude API Key (AI 파싱용)</label><input class="cinp" id="ck" type="password" value="${esc(CFG.claude_key)}" placeholder="sk-ant-api03-xxxxxxxxxxxx">
+    <div class="chint">Anthropic Console → API Keys에서 발급. AI 파싱 업로드 기능에 필요합니다. GitHub Pages 배포 시에만 필요하며, Claude.ai 내에서는 자동으로 작동합니다.</div>
+    <button class="cbtn" style="background:linear-gradient(135deg,var(--purple),#7c3aed)" onclick="saveCfg()">설정 저장</button></div>`;
+}
+function saveCfg(){
+  CFG.owner=document.getElementById('co')?.value.trim()||CFG.owner;
+  CFG.repo=document.getElementById('cr')?.value.trim()||CFG.repo;
+  CFG.branch=(document.getElementById('cb')?.value.trim())||'main';
+  CFG.path=(document.getElementById('cp')?.value.trim())||'data/tests.json';
+  CFG.token=document.getElementById('ct')?.value.trim()||CFG.token;
+  CFG.claude_key=document.getElementById('ck')?.value.trim()||CFG.claude_key;
+  localStorage.setItem('tdsp_cfg',JSON.stringify(CFG));
+  showBanner('ok','✓ 설정 저장 완료');setTimeout(()=>loadGitHub(),300);
+}
+
+// ══════════ UPLOAD — TABBED ══════════
+let UPLOAD_TAB='ai';
+let AI_FILES=[];
+let AI_PARSED_ENTRIES=[];
+let AI_CURRENT_IDX=0;
+
+function openUpload(){
+  UPLOAD_TAB='ai';AI_FILES=[];AI_PARSED_ENTRIES=[];AI_CURRENT_IDX=0;
+  document.getElementById('modalTitle').textContent='테스트 데이터 등록';
+  renderUploadBody();
+  openModal();
+}
+
+function renderUploadBody(){
+  const mb=document.getElementById('modalBody');
+  mb.innerHTML=`
+    <div class="upload-tabs">
+      <button class="utab ${UPLOAD_TAB==='ai'?'on':''}" onclick="UPLOAD_TAB='ai';renderUploadBody()">🤖 AI 파싱 업로드</button>
+      <button class="utab ${UPLOAD_TAB==='manual'?'on':''}" onclick="UPLOAD_TAB='manual';renderUploadBody()">✏️ 수동 입력</button>
+      <button class="utab ${UPLOAD_TAB==='json'?'on':''}" onclick="UPLOAD_TAB='json';renderUploadBody()">📋 JSON 붙여넣기</button>
+    </div>
+    <div id="uploadContent"></div>`;
+  const uc=document.getElementById('uploadContent');
+  if(UPLOAD_TAB==='ai') renderAIUpload(uc);
+  else if(UPLOAD_TAB==='manual') renderManualUpload(uc);
+  else renderJSONImport(uc);
+}
+
+// ── AI Upload Tab ──
+function renderAIUpload(C){
+  C.innerHTML=`
+    <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()"
+         ondragover="event.preventDefault();this.classList.add('drag')"
+         ondragleave="this.classList.remove('drag')"
+         ondrop="event.preventDefault();this.classList.remove('drag');handleDrop(event)">
+      <div class="dz-icon">📂</div>
+      <div class="dz-main">PPT, Excel, Word 파일을 드래그하거나 클릭하여 선택</div>
+      <div class="dz-sub">.pptx, .xlsx, .xlsm, .docx 지원 · 최대 50MB</div>
+      <input type="file" id="fileInput" hidden accept=".pptx,.xlsx,.xlsm,.xls,.docx" multiple onchange="handleFileSelect(event)">
+    </div>
+    <div id="fileList"></div>
+    <div id="aiArea"></div>`;
+}
+
+function handleDrop(e){
+  const files=[...e.dataTransfer.files].filter(f=>/\.(pptx|xlsx|xlsm|xls|docx)$/i.test(f.name));
+  if(!files.length){showBanner('err','지원하지 않는 파일 형식입니다.');return}
+  files.forEach(f=>{if(!AI_FILES.find(x=>x.name===f.name))AI_FILES.push(f)});
+  renderFileList();
+}
+
+function handleFileSelect(e){
+  [...e.target.files].forEach(f=>{if(!AI_FILES.find(x=>x.name===f.name))AI_FILES.push(f)});
+  renderFileList();
+}
+
+function removeFile(idx){
+  AI_FILES.splice(idx,1);
+  renderFileList();
+}
+
+function renderFileList(){
+  const fl=document.getElementById('fileList');
+  if(!AI_FILES.length){fl.innerHTML='';document.getElementById('aiArea').innerHTML='';return}
+  fl.innerHTML=AI_FILES.map((f,i)=>{
+    const ext=f.name.split('.').pop().toLowerCase();
+    const icon=ext==='pptx'?'🟣':ext.startsWith('xls')?'🟢':'🔵';
+    const size=f.size>1048576?(f.size/1048576).toFixed(1)+'MB':(f.size/1024).toFixed(0)+'KB';
+    return `<div class="dz-file"><span>${icon}</span><span class="dz-fname">${esc(f.name)}</span><span class="dz-fsize">${size}</span><button class="dz-remove" onclick="removeFile(${i})">✕</button></div>`;
+  }).join('')+`<div style="margin-top:14px"><button class="abtn-primary" style="width:100%" onclick="startAIParsing()" id="aiStartBtn">🤖 AI 파싱 시작 (${AI_FILES.length}개 파일)</button></div>`;
+}
+
+async function startAIParsing(){
+  const btn=document.getElementById('aiStartBtn');
+  btn.disabled=true;btn.textContent='파싱 중...';
+  const area=document.getElementById('aiArea');
+  AI_PARSED_ENTRIES=[];AI_CURRENT_IDX=0;
+
+  for(let i=0;i<AI_FILES.length;i++){
+    const file=AI_FILES[i];
+    area.innerHTML=`<div class="ai-progress">
+      <div style="font-size:13px;color:var(--t1);font-weight:600;margin-bottom:10px">처리 중: ${esc(file.name)} (${i+1}/${AI_FILES.length})</div>
+      <div class="ai-step active" id="step1"><span class="check"><span class="spin"></span></span> 파일 내용 추출 중...</div>
+      <div class="ai-step" id="step2"><span class="check">○</span> Claude AI 분석 대기</div>
+      <div class="ai-step" id="step3"><span class="check">○</span> JSON 변환 대기</div>
+    </div>`;
+
+    try{
+      // Step 1: Parse file
+      const text=await parseFileContent(file);
+      document.getElementById('step1').className='ai-step done';
+      document.getElementById('step1').innerHTML='<span class="check">✓</span> 파일 내용 추출 완료 ('+Math.round(text.length/1000)+'K chars)';
+      document.getElementById('step2').className='ai-step active';
+      document.getElementById('step2').innerHTML='<span class="check"><span class="spin"></span></span> Claude AI 분석 중...';
+
+      // Step 2: Call Claude API
+      const json=await callClaudeForParsing(text,file.name);
+      document.getElementById('step2').className='ai-step done';
+      document.getElementById('step2').innerHTML='<span class="check">✓</span> Claude AI 분석 완료';
+      document.getElementById('step3').className='ai-step done';
+      document.getElementById('step3').innerHTML='<span class="check">✓</span> JSON 변환 완료';
+
+      AI_PARSED_ENTRIES.push({filename:file.name,data:json,raw:JSON.stringify(json,null,2)});
+    }catch(err){
+      area.innerHTML+=`<div class="ai-error">❌ ${esc(file.name)} 처리 실패: ${esc(err.message)}</div>`;
+      AI_PARSED_ENTRIES.push({filename:file.name,data:null,error:err.message});
+    }
+  }
+
+  // Show preview
+  renderAIPreview(area);
+}
+
+// ── File Parsing ──
+async function parseFileContent(file){
+  const ext=file.name.split('.').pop().toLowerCase();
+  const buf=await file.arrayBuffer();
+  if(ext==='pptx') return await parsePPTX(buf,file.name);
+  if(ext==='xlsx'||ext==='xlsm'||ext==='xls') return parseXLSX(buf,file.name);
+  if(ext==='docx') return await parseDOCX(buf,file.name);
+  throw new Error('지원하지 않는 형식: .'+ext);
+}
+
+async function parsePPTX(buf,name){
+  const zip=await JSZip.loadAsync(buf);
+  let output='[FILE: '+name+']\n\n';
+
+  // Get slide count
+  const slideFiles=Object.keys(zip.files).filter(f=>/^ppt\/slides\/slide\d+\.xml$/i.test(f)).sort((a,b)=>{
+    const na=parseInt(a.match(/\d+/)[0]),nb=parseInt(b.match(/\d+/)[0]);return na-nb;
+  });
+
+  for(const sf of slideFiles){
+    const num=sf.match(/\d+/)[0];
+    const xml=await zip.file(sf).async('string');
+    output+=`\n=== Slide ${num} ===\n`;
+    output+=extractPPTXText(xml);
+
+    // Check for notes
+    const notesFile=`ppt/notesSlides/notesSlide${num}.xml`;
+    if(zip.files[notesFile]){
+      const nxml=await zip.file(notesFile).async('string');
+      const notes=extractPPTXText(nxml);
+      if(notes.trim()) output+=`\n[Speaker Notes]\n${notes}`;
+    }
+  }
+  return output;
+}
+
+function extractPPTXText(xml){
+  let text='';
+  // Extract table data
+  const tableRegex=/<a:tbl>([\s\S]*?)<\/a:tbl>/g;
+  const rowRegex=/<a:tr[\s>]([\s\S]*?)<\/a:tr>/g;
+  const cellRegex=/<a:tc[\s>]([\s\S]*?)<\/a:tc>/g;
+  const textRegex=/<a:t>([\s\S]*?)<\/a:t>/g;
+
+  let processed=xml;
+  let tableMatch;
+  const tables=[];
+
+  while((tableMatch=tableRegex.exec(xml))!==null){
+    const tableXml=tableMatch[1];
+    const rows=[];
+    let rowMatch;
+    const rowRe=new RegExp(rowRegex.source,'g');
+    while((rowMatch=rowRe.exec(tableXml))!==null){
+      const cells=[];
+      const cellRe=new RegExp(cellRegex.source,'g');
+      let cellMatch;
+      while((cellMatch=cellRe.exec(rowMatch[1]))!==null){
+        const cellTexts=[];
+        const tRe=new RegExp(textRegex.source,'g');
+        let tMatch;
+        while((tMatch=tRe.exec(cellMatch[1]))!==null) cellTexts.push(tMatch[1]);
+        cells.push(cellTexts.join(' '));
+      }
+      rows.push(cells);
+    }
+    if(rows.length) tables.push(rows);
+  }
+
+  // Extract all text runs (non-table)
+  const allText=[];
+  const paraRegex=/<a:p[\s>]([\s\S]*?)<\/a:p>/g;
+  let paraMatch;
+  while((paraMatch=paraRegex.exec(xml))!==null){
+    const runs=[];
+    const tRe=new RegExp(textRegex.source,'g');
+    let tMatch;
+    while((tMatch=tRe.exec(paraMatch[1]))!==null) runs.push(tMatch[1]);
+    if(runs.length) allText.push(runs.join(''));
+  }
+
+  text+=allText.join('\n')+'\n';
+
+  // Add tables as formatted text
+  tables.forEach((tbl,ti)=>{
+    text+=`\n[Table ${ti+1}]\n`;
+    tbl.forEach(row=>{text+=row.join(' | ')+'\n'});
+  });
+
+  return text;
+}
+
+function parseXLSX(buf,name){
+  const wb=XLSX.read(buf,{type:'array',cellDates:true});
+  let output='[FILE: '+name+']\n';
+  output+='Sheets: '+wb.SheetNames.join(', ')+'\n';
+
+  wb.SheetNames.forEach(sn=>{
+    const ws=wb.Sheets[sn];
+    const range=XLSX.utils.decode_range(ws['!ref']||'A1');
+    const rows=range.e.r-range.s.r+1;
+    const cols=range.e.c-range.s.c+1;
+    output+=`\n=== Sheet: ${sn} (${rows} rows × ${cols} cols) ===\n`;
+
+    const json=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    if(json.length===0) return;
+
+    // Header
+    output+='Headers: '+json[0].join(' | ')+'\n';
+
+    if(rows<=50){
+      // Small sheet: include all
+      json.slice(1).forEach(row=>{output+=row.join(' | ')+'\n'});
+    }else{
+      // Large sheet: first 10 rows + summary
+      output+='[First 10 rows of data]\n';
+      json.slice(1,11).forEach(row=>{output+=row.join(' | ')+'\n'});
+      output+=`\n[... ${rows-11} more rows ...]\n`;
+      // Last 3 rows
+      output+='[Last 3 rows]\n';
+      json.slice(-3).forEach(row=>{output+=row.join(' | ')+'\n'});
+
+      // Numeric column summaries
+      const numCols=[];
+      for(let c=0;c<cols;c++){
+        const vals=json.slice(1).map(r=>parseFloat(r[c])).filter(v=>!isNaN(v));
+        if(vals.length>rows*0.5){
+          const min=Math.min(...vals),max=Math.max(...vals),avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+          numCols.push({col:json[0][c]||('Col'+c),min:min.toFixed(2),max:max.toFixed(2),avg:avg.toFixed(2),count:vals.length});
+        }
+      }
+      if(numCols.length){
+        output+='\n[Column Statistics]\n';
+        numCols.forEach(c=>{output+=`${c.col}: min=${c.min}, max=${c.max}, avg=${c.avg}, count=${c.count}\n`});
+      }
+    }
+  });
+  return output;
+}
+
+async function parseDOCX(buf,name){
+  const zip=await JSZip.loadAsync(buf);
+  const docXml=await zip.file('word/document.xml')?.async('string');
+  if(!docXml) return '[FILE: '+name+']\n(Could not read document content)';
+
+  let output='[FILE: '+name+']\n\n';
+  const textRegex=/<w:t[\s>][^>]*>([\s\S]*?)<\/w:t>|<w:t>([\s\S]*?)<\/w:t>/g;
+  const paraRegex=/<w:p[\s>]([\s\S]*?)<\/w:p>/g;
+  let paraMatch;
+  while((paraMatch=paraRegex.exec(docXml))!==null){
+    const texts=[];
+    const tRe=new RegExp(textRegex.source,'g');
+    let tMatch;
+    while((tMatch=tRe.exec(paraMatch[1]))!==null) texts.push(tMatch[1]||tMatch[2]||'');
+    if(texts.length) output+=texts.join('')+'\n';
+  }
+  return output;
+}
+
+// ── Claude API Call ──
+async function callClaudeForParsing(text,filename){
+  const systemPrompt=buildAIPrompt();
+
+  const truncated=text.length>80000?text.substring(0,80000)+'\n\n[TRUNCATED — original was '+text.length+' chars]':text;
+
+  const headers={'Content-Type':'application/json'};
+  if(CFG.claude_key){
+    headers['x-api-key']=CFG.claude_key;
+    headers['anthropic-dangerous-direct-browser-access']='true';
+  }
+
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers,
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:4096,
+      system:systemPrompt,
+      messages:[{role:'user',content:`Extract test data from this file:\n\nFilename: ${filename}\n\n${truncated}`}]
+    })
+  });
+
+  if(!resp.ok){
+    const errBody=await resp.text();
+    throw new Error('API 호출 실패 ('+resp.status+'): '+errBody.substring(0,200));
+  }
+
+  const data=await resp.json();
+  const raw=data.content.map(c=>c.text||'').join('');
+  const cleaned=raw.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
+
+  try{ return JSON.parse(cleaned) }
+  catch(e){ throw new Error('JSON 파싱 실패: '+e.message+'\n\nAI 응답:\n'+raw.substring(0,500)) }
+}
+
+// ── AI Preview ──
+function renderAIPreview(area){
+  const valid=AI_PARSED_ENTRIES.filter(e=>e.data);
+  const failed=AI_PARSED_ENTRIES.filter(e=>!e.data);
+
+  if(!valid.length){
+    area.innerHTML=`<div class="ai-error">모든 파일의 파싱이 실패했습니다. 설정에서 Claude API Key를 확인하세요.</div>`;
+    return;
+  }
+
+  // Flatten arrays
+  const allEntries=[];
+  valid.forEach(v=>{
+    if(Array.isArray(v.data)) v.data.forEach(d=>allEntries.push(d));
+    else allEntries.push(v.data);
+  });
+
+  AI_PARSED_ENTRIES=allEntries.map((d,i)=>({data:d,raw:JSON.stringify(d,null,2),idx:i}));
+  AI_CURRENT_IDX=0;
+
+  area.innerHTML=`
+    <div class="ai-preview">
+      <div class="ai-preview-header">
+        <span>✅ ${allEntries.length}건의 데이터 추출 완료${failed.length?' ('+failed.length+'건 실패)':''}</span>
+      </div>
+      ${allEntries.length>1?`<div class="multi-entries" id="entryTabs">${allEntries.map((d,i)=>`<button class="entry-tab ${i===0?'on':''}" onclick="switchEntry(${i})">${d.test_id||'Entry '+(i+1)}</button>`).join('')}</div>`:''}
+      <div style="margin-top:10px;font-size:11px;color:var(--t3);margin-bottom:6px">아래 JSON을 검토하고 필요시 수정하세요:</div>
+      <textarea class="ai-json" id="aiJsonEdit">${esc(JSON.stringify(allEntries[0],null,2))}</textarea>
+      <div class="ai-actions">
+        <button class="abtn-secondary" onclick="closeModal()">취소</button>
+        ${allEntries.length>1?`<button class="abtn-primary" onclick="saveAllAIEntries()" style="background:linear-gradient(135deg,var(--purple),#7c3aed)">📦 전체 ${allEntries.length}건 저장</button>`:''}
+        <button class="abtn-primary" onclick="saveCurrentAIEntry()">💾 저장</button>
+      </div>
+    </div>`;
+}
+
+function switchEntry(idx){
+  // Save current edit
+  const ta=document.getElementById('aiJsonEdit');
+  if(ta) AI_PARSED_ENTRIES[AI_CURRENT_IDX].raw=ta.value;
+
+  AI_CURRENT_IDX=idx;
+  ta.value=AI_PARSED_ENTRIES[idx].raw;
+
+  document.querySelectorAll('.entry-tab').forEach((t,i)=>t.className='entry-tab'+(i===idx?' on':''));
+}
+
+async function saveCurrentAIEntry(){
+  const ta=document.getElementById('aiJsonEdit');
+  try{
+    const entry=JSON.parse(ta.value);
+    await saveGitHub(entry);
+    showBanner('ok',`✓ 저장 완료: ${entry.test_id}`);
+    closeModal();
+  }catch(e){
+    showBanner('err','JSON 형식 오류: '+e.message);
+  }
+}
+
+async function saveAllAIEntries(){
+  const btn=event.target;btn.disabled=true;btn.textContent='저장 중...';
+  let saved=0,failed=0;
+
+  // Save current edit back
+  const ta=document.getElementById('aiJsonEdit');
+  if(ta) AI_PARSED_ENTRIES[AI_CURRENT_IDX].raw=ta.value;
+
+  for(const pe of AI_PARSED_ENTRIES){
+    try{
+      const entry=JSON.parse(pe.raw);
+      if(!CFG.owner||!CFG.repo||!CFG.token){
+        DATA.push(entry);saved++;
+      }else{
+        await saveGitHub(entry);saved++;
+      }
+    }catch(e){failed++}
+  }
+
+  render();
+  showBanner('ok',`✓ ${saved}건 저장 완료${failed?' ('+failed+'건 실패)':''}`);
+  closeModal();
+}
+
+// ── JSON Import Tab ──
+function renderJSONImport(C){
+  C.innerHTML=`
+    <div style="font-size:12.5px;color:var(--t2);margin-bottom:12px">Claude가 생성한 JSON을 아래에 붙여넣으세요. 단일 객체 또는 배열 모두 가능합니다.</div>
+    <textarea class="ai-json" id="jsonImportArea" placeholder='[
+  {
+    "test_id": "QB-PERF-2026-001",
+    "project_name": "QB Project",
+    "test_type": "Performance",
+    "test_date": "2026-02-10",
+    "result_summary": "Conditional",
+    "engineer_name": "Jongtack Byeon",
+    "measurements": [...],
+    ...
+  }
+]'></textarea>
+    <div style="margin-top:8px;font-size:11px;color:var(--t3)">Tip: Claude 대화에서 파일을 첨부하고 "TDSP 스키마로 JSON 변환해줘"라고 요청하세요.</div>
+    <div class="ai-actions" style="margin-top:14px">
+      <button class="abtn-secondary" onclick="closeModal()">취소</button>
+      <button class="abtn-primary" onclick="importJSON()">📥 Import</button>
+    </div>`;
+}
+
+async function importJSON(){
+  const ta=document.getElementById('jsonImportArea');
+  try{
+    let parsed=JSON.parse(ta.value);
+    if(!Array.isArray(parsed)) parsed=[parsed];
+
+    let saved=0;
+    for(const entry of parsed){
+      if(!entry.test_id){showBanner('err','test_id가 없는 항목이 있습니다.');return}
+      if(!CFG.owner||!CFG.repo||!CFG.token){
+        DATA.push(entry);saved++;
+      }else{
+        await saveGitHub(entry);saved++;
+      }
+    }
+    render();
+    showBanner('ok',`✓ ${saved}건 Import 완료`);
+    closeModal();
+  }catch(e){
+    showBanner('err','JSON 파싱 오류: '+e.message);
+  }
+}
+
+// ── Manual Upload Tab ──
+function renderManualUpload(C){
+  C.innerHTML=`<form onsubmit="submitData(event)">${buildManualFormHTML()}<button type="submit" class="fsub" id="sbtn">데이터 저장</button></form>`;
+}
+
+function tryJSON(s){try{return JSON.parse(s)}catch(e){return null}}
+
+async function submitData(e){
+  e.preventDefault();
+  const btn=document.getElementById('sbtn');btn.disabled=true;btn.textContent='저장 중...';
+  const entry=collectFormData();
+  await saveGitHub(entry);
+  closeModal();
+}
+
+// ══════════ INIT ══════════
+renderNav();
+loadGitHub();
+</script>
+</body>
+</html>
