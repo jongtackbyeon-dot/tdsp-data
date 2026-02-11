@@ -525,7 +525,6 @@ function renderDetail(C){
       <div class="dsec"><div class="stit">원본 파일</div>${(d.original_files||[]).map(f=>`<div class="flink"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>${esc(f)}</div>`).join('')}</div>
       ${(d.measurements||[]).length?`<div class="dsec full"><div class="stit" style="color:var(--purple)">Layer 2 — 측정 결과</div><table class="mtbl"><thead><tr><th>항목</th><th>측정값</th><th>단위</th><th>조건</th><th>판정</th></tr></thead><tbody>${d.measurements.map(m=>`<tr><td style="color:var(--t1)">${m.item||''}</td><td style="font-family:var(--mono);font-size:12px;color:var(--t1)">${m.value!=null?m.value:''}</td><td style="color:var(--t3)">${m.unit||''}</td><td style="color:var(--t2);font-size:11px">${m.condition||m.spec||''}</td><td>${m.verdict?badge(m.verdict):''}</td></tr>`).join('')}</tbody></table></div>`:''}
       ${renderCustomFieldsDetail(d)}
-      <div class="dsec"><div class="stit">태그      </div>`:''}
       <div class="dsec"><div class="stit">태그</div><div class="tags">${(d.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div></div>
       <div class="dsec"><div class="stit">비고</div><div class="ntxt">${esc(d.notes||'없음')}</div></div>
     </div></div>`;
